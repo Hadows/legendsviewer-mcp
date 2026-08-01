@@ -68,6 +68,11 @@ notable figures looks like a pattern until you learn that half the world shares 
 are recorded for only part of the objects, so the tool reports both denominators rather than letting
 you assume one.
 
+Arguments are validated strictly: an unknown parameter is an error, not a silently dropped key. The
+tool's cap is `maxEvents` for both detail levels, whereas the backend route behind the digest calls
+it `maxNotableEvents` — passing the backend's name used to look like it worked while the server
+default applied instead.
+
 ## Two habits worth having
 
 **Ask for the digest first.** `read_object` defaults to it. The full dossier of a large civilization
