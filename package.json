@@ -1,0 +1,40 @@
+{
+  "name": "legendsviewer-mcp",
+  "version": "0.1.0",
+  "description": "MCP server exposing the LegendsViewer-AIPowered analysis API, for querying Dwarf Fortress legends",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "legendsviewer-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "dwarf-fortress",
+    "legends",
+    "legendsviewer"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
+  }
+}
