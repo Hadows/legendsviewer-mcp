@@ -81,6 +81,21 @@ describe("MCP surface", () => {
     expect(api.calls[0]!.params).toMatchObject({ maxNotableEvents: 10 });
   });
 
+  it("rejects an unknown parameter instead of silently dropping it", async () => {
+    const client = await connect(api);
+
+    // maxNotableEvents is the backend's name for the digest cap, not the tool's. Stripped quietly
+    // it would look like the limit was applied while the server default was used instead.
+    const result = await client.callTool({
+      name: "read_object",
+      arguments: { type: "Entity", id: 88, maxNotableEvents: 10 },
+    });
+
+    expect(result.isError).toBe(true);
+    expect(JSON.stringify(result.content)).toContain("maxNotableEvents");
+    expect(api.calls).toHaveLength(0);
+  });
+
   it("routes read_object to the dossier when full detail is asked", async () => {
     const client = await connect(api);
 

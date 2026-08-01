@@ -5,6 +5,13 @@ import { AnalysisApi, AnalysisApiError } from "./api.js";
 export const SERVER_NAME = "legendsviewer";
 export const SERVER_VERSION = "0.1.0";
 
+/**
+ * Tool arguments are declared strict so a misspelled parameter is rejected instead of dropped.
+ * Zod strips unknown keys by default, which means a caller asking for "maxNotableEvents" silently
+ * gets the server default and no hint that the name was wrong.
+ */
+const args = z.strictObject;
+
 /** Filters shared by the dossier, digest and event search routes. */
 const eventFilters = {
   fromYear: z.number().int().optional().describe("Earliest year, inclusive."),
@@ -90,9 +97,9 @@ export function createServer(api: AnalysisApi = new AnalysisApi()): McpServer {
       description:
         "Parses a legends export into memory, replacing whatever world was loaded. Takes about 30 seconds and 800 MB for a large " +
         "world, so call it once and query afterwards. Point it at the -legends.xml file; the _plus.xml beside it is picked up automatically.",
-      inputSchema: {
+      inputSchema: args({
         path: z.string().describe("Full path to the <world>-legends.xml file."),
-      },
+      }),
     },
     async ({ path }) => {
       const bookmark = await api.postJson<Bookmark>("/api/Bookmark/loadByFullPath", path);
@@ -120,7 +127,7 @@ export function createServer(api: AnalysisApi = new AnalysisApi()): McpServer {
         "The history of a single world object as prose. detail='digest' condenses it to the event type breakdown, an activity " +
         "histogram and only the events whose type is rare for that object — use it for civilizations and other large objects, " +
         "whose full dossier can exceed 600 KB. detail='full' returns everything.",
-      inputSchema: {
+      inputSchema: args({
         type: z.string().describe('Object type, for example "HistoricalFigure", "Entity", "Site", "War".'),
         id: z.number().int().describe("Object id."),
         detail: z.enum(["full", "digest"]).default("digest").describe("How much to return."),
@@ -130,7 +137,7 @@ export function createServer(api: AnalysisApi = new AnalysisApi()): McpServer {
           .optional()
           .describe("Cap on events (full) or on notable events (digest). 0 means no limit."),
         ...eventFilters,
-      },
+      }),
     },
     async ({ type, id, detail, maxEvents, fromYear, toYear, eventTypes }) => {
       const route = detail === "full" ? "dossier" : "digest";
@@ -151,11 +158,11 @@ export function createServer(api: AnalysisApi = new AnalysisApi()): McpServer {
     {
       title: "Search by name",
       description: "Finds world objects whose name contains the query. Exact matches rank first, then prefixes, then event count.",
-      inputSchema: {
+      inputSchema: args({
         q: z.string().describe("Substring of the name, case-insensitive."),
         type: z.string().optional().describe("Restrict to one object type."),
         limit: z.number().int().optional().describe("Maximum hits, default 25."),
-      },
+      }),
     },
     async ({ q, type, limit }) => json(await api.getJson("/api/Analysis/search", { q, type, limit })),
   );
@@ -168,7 +175,7 @@ export function createServer(api: AnalysisApi = new AnalysisApi()): McpServer {
         "Searches the structured properties of objects — goal, race, positions, affiliations, worshipped deities — rather than " +
         "names or event text. These never appear in any event, so this is the only tool that finds them. Each hit reports which " +
         "field and value matched.",
-      inputSchema: {
+      inputSchema: args({
         q: z.string().describe("Substring of the property value, case-insensitive."),
         type: z.string().optional().describe("Restrict to one object type."),
         field: z
@@ -176,7 +183,7 @@ export function createServer(api: AnalysisApi = new AnalysisApi()): McpServer {
           .optional()
           .describe('Restrict to one property, using the key printed in brackets in a dossier, for example "goal" or "position".'),
         limit: z.number().int().optional().describe("Maximum hits, default 25."),
-      },
+      }),
     },
     async ({ q, type, field, limit }) => json(await api.getJson("/api/Analysis/objects/search", { q, type, field, limit })),
   );
@@ -189,11 +196,11 @@ export function createServer(api: AnalysisApi = new AnalysisApi()): McpServer {
         "Full text search over the prose of every event in the world — the only way to find deeds, as opposed to names or " +
         "properties. There is no index, so an unfiltered query on a large world takes a few seconds; passing eventTypes cuts " +
         "that to milliseconds because excluded events are never rendered.",
-      inputSchema: {
+      inputSchema: args({
         q: z.string().describe("Substring of the event prose, case-insensitive."),
         limit: z.number().int().optional().describe("Maximum events shown, default 25."),
         ...eventFilters,
-      },
+      }),
     },
     async ({ q, limit, fromYear, toYear, eventTypes }) =>
       text(await api.getText("/api/Analysis/events/search", { q, limit, fromYear, toYear, eventTypes })),
@@ -207,11 +214,11 @@ export function createServer(api: AnalysisApi = new AnalysisApi()): McpServer {
         "How common each value of a property is. Call it before concluding that a shared trait is meaningful: most properties " +
         "are recorded for only part of the objects, so the answer reports both the objects carrying the field and the whole " +
         "scope, and divides by the former. Omit field to list the queryable fields.",
-      inputSchema: {
+      inputSchema: args({
         type: z.string().optional().describe("Restrict to one object type."),
         field: z.string().optional().describe("Property key. Omit to list the available fields."),
         limit: z.number().int().optional().describe("Maximum values returned, default 50."),
-      },
+      }),
     },
     async ({ type, field, limit }) => json(await api.getJson("/api/Analysis/facets", { type, field, limit })),
   );
@@ -224,12 +231,12 @@ export function createServer(api: AnalysisApi = new AnalysisApi()): McpServer {
         "Who holds the maximum of a measure — events, kills, worshippers, deaths and so on. Complements base_rates, which " +
         "orders by how many objects share a value rather than by the value itself. Returns total, min, median and max beside " +
         "the leaders, so a first place can be read against the spread. Omit by to list the available measures.",
-      inputSchema: {
+      inputSchema: args({
         type: z.string().optional().describe("Restrict to one object type."),
         by: z.string().optional().describe("Measure name. Omit to list the available measures."),
         order: z.enum(["desc", "asc"]).optional().describe("Descending by default; asc for minima."),
         limit: z.number().int().optional().describe("Maximum entries, default 20."),
-      },
+      }),
     },
     async ({ type, by, order, limit }) => json(await api.getJson("/api/Analysis/top", { type, by, order, limit })),
   );
