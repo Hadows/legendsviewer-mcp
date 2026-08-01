@@ -105,6 +105,15 @@ describe("MCP surface", () => {
     expect(api.calls[0]!.params).toMatchObject({ maxEvents: 0 });
   });
 
+  it("lets search_events read a year with no text to search for", async () => {
+    const client = await connect(api);
+
+    await client.callTool({ name: "search_events", arguments: { fromYear: 290, toYear: 290 } });
+
+    expect(api.calls[0]!.path).toBe("/api/Analysis/events/search");
+    expect(api.calls[0]!.params).toMatchObject({ fromYear: 290, toYear: 290 });
+  });
+
   it("forwards the shared event filters", async () => {
     const client = await connect(api);
 

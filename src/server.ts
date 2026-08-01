@@ -195,9 +195,11 @@ export function createServer(api: AnalysisApi = new AnalysisApi()): McpServer {
       description:
         "Full text search over the prose of every event in the world — the only way to find deeds, as opposed to names or " +
         "properties. There is no index, so an unfiltered query on a large world takes a few seconds; passing eventTypes cuts " +
-        "that to milliseconds because excluded events are never rendered.",
+        "that to milliseconds because excluded events are never rendered. Omit q to read a span of history instead of " +
+        "searching it: with fromYear/toYear alone it returns everything that happened then, and being free of any text to " +
+        "match it is the fastest query here. Give q or a filter — neither would mean every event in the world.",
       inputSchema: args({
-        q: z.string().describe("Substring of the event prose, case-insensitive."),
+        q: z.string().optional().describe("Substring of the event prose, case-insensitive. Omit to take everything the filters admit."),
         limit: z.number().int().optional().describe("Maximum events shown, default 25."),
         ...eventFilters,
       }),
