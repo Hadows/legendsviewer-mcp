@@ -83,6 +83,11 @@ that are rare for that object.
 been rendered — so an unfiltered search on a large world renders every event and takes a few
 seconds. Passing `eventTypes` brings it to milliseconds.
 
+**Drop `q` to read history rather than search it.** `search_events` with only `fromYear`/`toYear`
+returns everything that happened then, which is the one question no keyword can express. It is also
+the fastest call in the set: with no text to match, nothing is rendered at all — a full year of a
+494,436 event world comes back in 9 ms.
+
 ## Development
 
 ```bash
