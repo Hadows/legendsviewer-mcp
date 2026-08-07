@@ -58,6 +58,7 @@ Set `LEGENDSVIEWER_URL` if the backend does not listen on `http://localhost:1542
 | `search_events` | full text search over the prose of every event |
 | `base_rates` | how common a property value is |
 | `rankings` | who holds the maximum of a numeric measure |
+| `breakdown` | one property grouped by another, with aggregates |
 
 Two of these deserve emphasis, because they cover what the others cannot. **Only `search_events`
 finds deeds**, which appear in no property; **only `search_properties` finds goals and
@@ -67,6 +68,12 @@ And `base_rates` is the one to reach for before concluding anything. A trait sha
 notable figures looks like a pattern until you learn that half the world shares it — most properties
 are recorded for only part of the objects, so the tool reports both denominators rather than letting
 you assume one.
+
+`breakdown` is the one to reach for when the question has two halves — *age at death by caste*,
+*casualties by attacker race*. The other tools each read a single property, so such a question used
+to be answered by pulling the objects and joining them by hand, which for the classic API means
+recovering ids from HTML anchors. Do not do that: if a property needed for the join is missing, add
+it as a facet in the backend instead.
 
 Arguments are validated strictly: an unknown parameter is an error, not a silently dropped key. The
 tool's cap is `maxEvents` for both detail levels, whereas the backend route behind the digest calls
