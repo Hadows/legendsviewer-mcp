@@ -264,7 +264,7 @@ export function createServer(api: AnalysisApi = new AnalysisApi()): McpServer {
         where: z
           .string()
           .optional()
-          .describe("Restrict the population before grouping, as field:value, e.g. race:Orc. Matched whole, case insensitively."),
+          .describe("Restrict the population before grouping. One or more field:value clauses, comma separated, combined with AND, e.g. race:Orc,deathcause:OldAge. Values are matched whole, case insensitively."),
         limit: z.number().int().optional().describe("Maximum groups returned, default 50."),
       }),
     },
