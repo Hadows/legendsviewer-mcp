@@ -87,11 +87,17 @@ describe("MCP surface", () => {
 
     await client.callTool({
       name: "breakdown",
-      arguments: { type: "HistoricalFigure", field: "caste", measure: "ageatdeath", limit: 10 },
+      arguments: { type: "HistoricalFigure", field: "caste", measure: "ageatdeath", where: "race:Orc", limit: 10 },
     });
 
     expect(api.calls[0]!.path).toBe("/api/Analysis/crosstab");
-    expect(api.calls[0]!.params).toMatchObject({ type: "HistoricalFigure", field: "caste", measure: "ageatdeath", limit: 10 });
+    expect(api.calls[0]!.params).toMatchObject({
+      type: "HistoricalFigure",
+      field: "caste",
+      measure: "ageatdeath",
+      where: "race:Orc",
+      limit: 10,
+    });
   });
 
   it("requires the breakdown grouping field, which the backend cannot default", async () => {
