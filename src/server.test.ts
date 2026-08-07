@@ -51,6 +51,7 @@ describe("MCP surface", () => {
 
     expect(names).toEqual([
       "base_rates",
+      "breakdown",
       "list_worlds",
       "load_world",
       "rankings",
@@ -79,6 +80,27 @@ describe("MCP surface", () => {
 
     expect(api.calls[0]!.path).toBe("/api/Analysis/digest/Entity/88");
     expect(api.calls[0]!.params).toMatchObject({ maxNotableEvents: 10 });
+  });
+
+  it("passes the breakdown grouping and measure through to the crosstab route", async () => {
+    const client = await connect(api);
+
+    await client.callTool({
+      name: "breakdown",
+      arguments: { type: "HistoricalFigure", field: "caste", measure: "ageatdeath", limit: 10 },
+    });
+
+    expect(api.calls[0]!.path).toBe("/api/Analysis/crosstab");
+    expect(api.calls[0]!.params).toMatchObject({ type: "HistoricalFigure", field: "caste", measure: "ageatdeath", limit: 10 });
+  });
+
+  it("requires the breakdown grouping field, which the backend cannot default", async () => {
+    const client = await connect(api);
+
+    const result = await client.callTool({ name: "breakdown", arguments: { type: "War" } });
+
+    expect(result.isError).toBe(true);
+    expect(api.calls).toHaveLength(0);
   });
 
   it("rejects an unknown parameter instead of silently dropping it", async () => {

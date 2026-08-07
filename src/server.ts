@@ -243,5 +243,28 @@ export function createServer(api: AnalysisApi = new AnalysisApi()): McpServer {
     async ({ type, by, order, limit }) => json(await api.getJson("/api/Analysis/top", { type, by, order, limit })),
   );
 
+  server.registerTool(
+    "breakdown",
+    {
+      title: "Break one property down by another",
+      description:
+        "Groups objects by a property and, when measure names a numeric one, reports total, min, max, median and mean of it " +
+        "within each group. base_rates and rankings each read a single property; this is the only way to ask a question over " +
+        "two at once — age at death by caste, war casualties by attacker race, sites per civilization. field accepts any key " +
+        "base_rates lists, measure any name rankings lists. Never reconstruct such a join by reading objects one by one.",
+      inputSchema: args({
+        type: z.string().optional().describe("Restrict to one object type."),
+        field: z.string().describe("Property to group by, e.g. caste, race, attackerrace."),
+        measure: z
+          .string()
+          .optional()
+          .describe("Numeric measure to aggregate, e.g. ageatdeath, deathcount. Omit to count objects per group."),
+        limit: z.number().int().optional().describe("Maximum groups returned, default 50."),
+      }),
+    },
+    async ({ type, field, measure, limit }) =>
+      json(await api.getJson("/api/Analysis/crosstab", { type, field, measure, limit })),
+  );
+
   return server;
 }
